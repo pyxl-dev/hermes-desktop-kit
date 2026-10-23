@@ -158,7 +158,11 @@ function ProfilePill({ prefs, schedule }) {
       .list()
       .then(list => {
         if (live) {
-          setProfiles(Array.isArray(list) ? list : [])
+          // `/api/profiles` answers `{ profiles: [...] }`; tolerate a bare array
+          // too so a future host shape can't empty the roster.
+          const entries = Array.isArray(list) ? list : (list && list.profiles) || []
+
+          setProfiles(entries)
           setFailed(false)
         }
       })
