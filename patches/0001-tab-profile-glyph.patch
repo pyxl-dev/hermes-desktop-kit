@@ -1,0 +1,100 @@
+diff --git a/apps/desktop/src/app/chat/session-tile.tsx b/apps/desktop/src/app/chat/session-tile.tsx
+index 845144445fd..16b62c8793f 100644
+--- a/apps/desktop/src/app/chat/session-tile.tsx
++++ b/apps/desktop/src/app/chat/session-tile.tsx
+@@ -973,7 +973,10 @@ export const watchSessionTiles = paneMirror<SessionTile>({
+   // two surfaces. Self-subscribing (live state + resolved color), so the strip
+   // needn't re-sync when it changes.
+   tabLead: storedSessionId => (
+-    <SessionStatusDot session={tileStoredRow(storedSessionId)} storedSessionId={storedSessionId} />
++    <>
++      <TabProfileMark profile={tileStoredRow(storedSessionId)?.profile} />
++      <SessionStatusDot session={tileStoredRow(storedSessionId)} storedSessionId={storedSessionId} />
++    </>
+   ),
+   // Until the first turn lists a row there is no title to register, so the tab
+   // takes its name from the composer instead — live, without re-registering.
+diff --git a/apps/desktop/src/app/chat/tab-profile-mark.test.tsx b/apps/desktop/src/app/chat/tab-profile-mark.test.tsx
+new file mode 100644
+index 00000000000..a002b12fc06
+--- /dev/null
++++ b/apps/desktop/src/app/chat/tab-profile-mark.test.tsx
+@@ -0,0 +1,28 @@
++import { renderToStaticMarkup } from 'react-dom/server'
++import { describe, expect, it } from 'vitest'
++
++import { I18nProvider } from '@/i18n'
++
++import { TabProfileMark } from './tab-profile-mark'
++
++const html = (profile: null | string | undefined) =>
++  renderToStaticMarkup(
++    <I18nProvider configClient={null} initialLocale="en">
++      <TabProfileMark profile={profile} />
++    </I18nProvider>
++  )
++
++describe('a session tab profile mark', () => {
++  it('says nothing for the default profile — the workspace is the default', () => {
++    expect(html('default')).toBe('')
++    expect(html(undefined)).toBe('')
++    expect(html('')).toBe('')
++  })
++
++  it("marks a named profile with its initial and names it, like the sidebar row", () => {
++    const markup = html('ynov')
++
++    expect(markup).toContain('>y<')
++    expect(markup).toContain('aria-label')
++  })
++})
+diff --git a/apps/desktop/src/app/chat/tab-profile-mark.tsx b/apps/desktop/src/app/chat/tab-profile-mark.tsx
+new file mode 100644
+index 00000000000..2eae581daec
+--- /dev/null
++++ b/apps/desktop/src/app/chat/tab-profile-mark.tsx
+@@ -0,0 +1,26 @@
++import { ProfileTag } from '@/app/chat/profile-tag'
++import { normalizeProfileKey } from '@/store/profile'
++
++/**
++ * The owning profile's mark in a session tab, to the left of the tab's name.
++ *
++ * Only a non-default profile earns one: the default profile is the app's own
++ * workspace, so marking every tab with it would add a glyph to single-profile
++ * users and say nothing. A named profile is real routing information — which
++ * backend, which keys, which memory — and the sidebar row already says it, so
++ * a tab that names only the session can otherwise be read as belonging to the
++ * workspace the user happens to be in.
++ *
++ * Sits in the tab's `tabLead` (before the status dot), so it inherits the ⌘-
++ * number overlay and the strip's own geometry. Sized down from the sidebar's
++ * chip: a tab is 11px text, a 16px mark there would out-weigh the name.
++ */
++export function TabProfileMark({ profile }: { profile: null | string | undefined }) {
++  const key = normalizeProfileKey(profile)
++
++  if (key === 'default') {
++    return null
++  }
++
++  return <ProfileTag className="mr-1 size-3.5 rounded-[2px] text-[0.4375rem]" profile={key} />
++}
+diff --git a/apps/desktop/src/app/contrib/controller.tsx b/apps/desktop/src/app/contrib/controller.tsx
+index f2e5260490d..4d1850fd888 100644
+--- a/apps/desktop/src/app/contrib/controller.tsx
++++ b/apps/desktop/src/app/contrib/controller.tsx
+@@ -508,7 +508,12 @@ const syncWorkspaceTitle = () => {
+       // tiles render, so the main tab never disagrees with its sidebar row. A
+       // fresh draft has no session to key by, which IS its status: the dot
+       // resolves to `draft` and marks the tab rather than leaving a hole.
+-      tabLead: () => <SessionStatusDot session={stored} storedSessionId={selected} />,
++      tabLead: () => (
++        <>
++          <TabProfileMark profile={stored?.profile} />
++          <SessionStatusDot session={stored} storedSessionId={selected} />
++        </>
++      ),
+       // A draft's name lives in its composer, not in any session row, so the
+       // label subscribes to it directly — typing renames the tab without
+       // re-registering the pane.
