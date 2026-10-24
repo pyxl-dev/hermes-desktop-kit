@@ -4,6 +4,8 @@ Small, opinionated improvements for [Hermes Desktop](https://hermes-agent.nousre
 
 Everything here is meant to be read, re-applied after a Hermes update, and thrown away the day the feature lands upstream.
 
+Announced on X: [@pyxl_dog](https://x.com/pyxl_dog/status/2113791838142484609).
+
 ## What's inside
 
 | Improvement | Kind | Where |
