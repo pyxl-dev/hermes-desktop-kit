@@ -32,6 +32,24 @@ Copies every `plugins/<name>/plugin.js` into `$HERMES_HOME/desktop-plugins/<name
 
 `apply-patches.sh` skips a patch that is already applied, so it is safe to re-run. The build writes the packaged app to `apps/desktop/release/mac-arm64/Hermes.app`; quit and reopen Hermes to see the change.
 
+### 3. Forget about it (optional)
+
+A `hermes update` rewrites the core checkout, so the patches have to come back afterwards. `scripts/reconcile.sh` closes that gap and is silent when there is nothing to do:
+
+```bash
+./scripts/reconcile.sh                  # re-apply missing patches, repair stale plugin copies
+```
+
+Wire it to the Hermes scheduler and the maintenance stops depending on anyone remembering:
+
+```bash
+cp scripts/reconcile.sh ~/.hermes/scripts/kit-reconcile.sh   # or a shim that execs this repo's copy
+hermes cron create "17 * * * *" --name "Hermes Desktop kit — reconcile" \
+  --script kit-reconcile.sh --no-agent --deliver telegram
+```
+
+`--no-agent` runs the script with no LLM; empty stdout means no message is sent, so a routine run costs nothing and says nothing. It speaks up only when it had to reapply a patch (then a rebuild and a relaunch are needed to see it) or when it repaired a plugin copy (then a plugin rescan applies it).
+
 ## Layout
 
 ```
@@ -39,6 +57,7 @@ plugins/<name>/plugin.js      runtime desktop plugins (drop-in, plain ESM)
 patches/*.patch               core source patches, applied with git apply
 scripts/install-plugins.sh    install the plugins into $HERMES_HOME
 scripts/apply-patches.sh      apply / verify the core patches
+scripts/reconcile.sh          re-apply missing patches + repair stale plugin copies (cron-friendly, silent on no-op)
 scripts/build-desktop.sh      rebuild + repackage Hermes Desktop
 docs/                         one page per improvement, with the reasoning
 ```

@@ -11,7 +11,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo="${1:-$HOME/.hermes/hermes-agent}"
 
-if [ ! -d "$repo/.git" ]; then
+if [ -z "$(git -C "$repo" rev-parse --git-dir 2>/dev/null)" ]; then
   echo "not a git checkout: $repo" >&2
   echo "usage: $0 [path-to-hermes-checkout]" >&2
   exit 1
