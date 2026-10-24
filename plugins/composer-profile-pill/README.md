@@ -6,7 +6,7 @@ A profile picker in the composer, immediately before the model pill. It answers 
 
 ## What it does
 
-- Shows the active profile: the `home` mark for the default profile, a tinted initial for every named one (same shapes and the same colours as the profile rail — it reads the rail's own `hermes.desktop.profileColors` overrides and reproduces the deterministic hue).
+- Shows the profile that owns the open chat: the `home` mark for the default profile, a tinted initial for every named one (same shapes and the same colours as the profile rail — it reads the rail's own `hermes.desktop.profileColors` overrides and reproduces the deterministic hue). A stored session opened from another profile keeps naming that profile, even while the workspace stays on `default` — it reads `host.state.focusedSessionProfile`, falling back to `host.state.profile` on hosts that don't ship it.
 - Opens a roster of every profile on the current gateway source, with the model each one is on, a filter once there are more than six, and a shortcut to *Manage profiles…*.
 - Picking a profile does exactly what clicking it in the rail does: the workspace moves to that profile's gateway and a fresh chat opens there.
 

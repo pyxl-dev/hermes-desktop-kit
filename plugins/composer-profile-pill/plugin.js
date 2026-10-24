@@ -133,7 +133,16 @@ function ProfileMark({ colors, name }) {
 
 function ProfilePill({ prefs, schedule }) {
   const t = usePluginI18n(ID)
-  const active = normalizeProfileKey(useValue(host.state.profile))
+  // The open chat owns the profile, not the workspace: a session stored under
+  // `maeva` keeps saying maeva while the workspace is parked on `default`.
+  // `focusedSessionProfile` is the host's per-chat owner profile; older hosts
+  // only ship `profile`, so it is feature-detected without changing the hook
+  // count (a conditional hook would reorder them and crash the slot).
+  const focusedAtom = host.state.focusedSessionProfile || host.state.profile
+  const focusedRaw = useValue(focusedAtom)
+  const focusedKey =
+    typeof focusedRaw === 'string' && focusedRaw.trim() ? normalizeProfileKey(focusedRaw) : ''
+  const active = focusedKey || normalizeProfileKey(useValue(host.state.profile))
   const { showLabel } = useValue(prefs)
   // A profile is bound to the session it opened. Once this conversation has
   // started — a durable session row, or a live runtime — the profile is no
