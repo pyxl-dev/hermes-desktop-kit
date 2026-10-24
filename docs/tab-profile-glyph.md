@@ -39,6 +39,12 @@ git apply --reverse patches/0001-tab-profile-glyph.patch   # from this repo
 
 or `git checkout -- apps/desktop/src/app/contrib/controller.tsx apps/desktop/src/app/chat/session-tile.tsx` and delete the two new files. Rebuild afterwards.
 
+## Upstream
+
+This one is proposed to Nous Research instead of living here forever: **PR [NousResearch/hermes-agent#143813](https://github.com/NousResearch/hermes-agent/pull/143813)**, serving the open issue [#102497](https://github.com/NousResearch/hermes-agent/issues/102497) (it asks for the same tab-lead surface, for bot faces).
+
+CI on that PR sits at `action_required` until a maintainer approves the workflow run for a first-time contributor — nothing has run yet, so do not read it as green. If the PR lands, delete `patches/0001-tab-profile-glyph.patch`, drop the core patch from this kit, and the tab mark comes with the app. The composer pill stays a plugin either way.
+
 ## Sizing
 
 The sidebar chip is 16px; a tab is 11px text, so the mark is 14px (`size-3.5`) with a 2px radius and a 1px gap before the label. It sits in `tabLead`, which means it also inherits the ⌘-number overlay: holding ⌘ still swaps the lead for the tab's shortcut number.
